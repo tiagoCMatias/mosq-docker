@@ -8,10 +8,10 @@ db_connection = None
 
 def connect_db():
     try:
-        conn = psycopg2.connect(host="db",
-                                database=os.environ["DB_NAME"],
-                                user=os.environ["DB_USER"],
-                                password=os.environ["DB_PASS"])
+        conn = psycopg2.connect(host='postgres',
+                                database=os.environ["POSTGRES_DB"],
+                                user=os.environ["POSTGRES_USER"],
+                                password=os.environ["POSTGRES_PASSWORD"])
         conn.autocommit = True
 
     except:
@@ -20,19 +20,27 @@ def connect_db():
 
     cursor = conn.cursor()
 
-    # Create Log Table if not exist
-    query = """
-        CREATE TABLE IF NOT EXISTS mosquitto_log (
-            id SERIAL PRIMARY KEY,
-            topic VARCHAR(256),
-            message TEXT,
-            timestamp TIMESTAMP,
-        );
-    """
+    try:
 
-    cursor.execute(query)
+        # Create Log Table if not exist
+        query = """
+            CREATE TABLE IF NOT EXISTS public.mosquitto_log (
+                id SERIAL PRIMARY KEY,
+                topic VARCHAR(256),
+                message TEXT,
+                timestamp TIMESTAMP,
+            );
+        """
 
-    return cursor
+        cursor.execute(query)
+
+        print("Table created")
+    
+    except:
+        print("Unable to create table")
+
+    finally:
+        return cursor
 
 
 def save_to_db(topic, message):
@@ -61,9 +69,10 @@ if __name__ == '__main__':
     client.on_connect = on_connect
     client.on_message = on_message
 
-    client.connect(os.environ['MOSQUITTO_HOST'],
-                   int(os.environ['MOSQUITTO_PORT']), 60)
+    client.connect('localhost',#os.environ['MOSQUITTO_HOST'],
+                   1883,#int(os.environ['MOSQUITTO_PORT']), 
+                   60)
 
-    print("connecting to broker -", os.environ['MOSQUITTO_HOST'])
+    print("connecting to broker -")#os.environ['MOSQUITTO_HOST'])
 
     client.loop_forever()

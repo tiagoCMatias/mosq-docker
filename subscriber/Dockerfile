@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3
 
 WORKDIR /
 
@@ -6,12 +6,6 @@ ADD subscriber.py /
 ADD requirements.txt /
 
 
-RUN apk update && \
- apk add postgresql-libs && \
- apk add --virtual .build-deps gcc musl-dev postgresql-dev && \
- python3 -m pip install -r requirements.txt --no-cache-dir && \
- apk --purge del .build-deps
-
-COPY . .
+RUN pip install -r requirements.txt
 
 CMD ["python", "subscriber.py"]
