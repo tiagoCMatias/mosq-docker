@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - db.env
+    volumes:
+      - ./postgresql:/postgresql
+
+  mqtt:
+    image: toke/mosquitto
+    ports:
+      - "1883:1883"
+
+  publisher:
+    build: publisher/.
+    depends_on:
+      - mqtt
+    env_file:
+      - base.env
+
+  subscriber:
+    build: subscriber/.
+    env_file:
+      - db.env
+      - base.env
+    depends_on:
+      - db
+      - mqtt
